@@ -1,0 +1,11 @@
+db.sqlite3
+core/static/*
+/media/
+.env
+*.pyc
+*.jpg
+*.jpeg
+*.png
+*.svg
+*.webp
+*.gif

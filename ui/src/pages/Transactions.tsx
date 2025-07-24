@@ -14,8 +14,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { LoadingSkeleton } from "@/components/ui/loading-skeleton";
 import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "sonner";
 import { PaginatedResponse, Transaction } from "@/types";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
 
 function useDebounce<T>(value: T, delay: number) {
     const [debounced, setDebounced] = React.useState(value);
@@ -35,6 +37,8 @@ const Transactions = () => {
     const debouncedSearch = useDebounce(search, 300);
     const [dateFrom, setDateFrom] = useState("");
     const [dateTo, setDateTo] = useState("");
+    const [dateFromPopoverOpen, setDateFromPopoverOpen] = useState(false);
+    const [dateToPopoverOpen, setDateToPopoverOpen] = useState(false);
 
     const { data, isLoading, isError } = useQuery<PaginatedResponse<Transaction>>({
         queryKey: ["transactions", page, debouncedSearch, dateFrom, dateTo],
@@ -74,24 +78,50 @@ const Transactions = () => {
                     }}
                     className="w-64"
                 />
-                <Input
-                    type="date"
-                    value={dateFrom}
-                    onChange={(e) => {
-                        setPage(1);
-                        setDateFrom(e.target.value);
-                    }}
-                    className="w-36"
-                />
-                <Input
-                    type="date"
-                    value={dateTo}
-                    onChange={(e) => {
-                        setPage(1);
-                        setDateTo(e.target.value);
-                    }}
-                    className="w-36"
-                />
+                <Popover open={dateFromPopoverOpen} onOpenChange={setDateFromPopoverOpen}>
+                    <PopoverTrigger asChild>
+                        <Button
+                            variant="outline"
+                            className="w-36 justify-start text-left font-normal"
+                        >
+                            {dateFrom ? format(new Date(dateFrom), "yyyy-MM-dd") : "From date"}
+                        </Button>
+                    </PopoverTrigger>
+                    <PopoverContent align="start" className="p-0">
+                        <Calendar
+                            mode="single"
+                            selected={dateFrom ? new Date(dateFrom) : undefined}
+                            onSelect={(d) => {
+                                setDateFromPopoverOpen(false);
+                                setPage(1);
+                                setDateFrom(d ? format(d, "yyyy-MM-dd") : "");
+                            }}
+                            initialFocus
+                        />
+                    </PopoverContent>
+                </Popover>
+                <Popover open={dateToPopoverOpen} onOpenChange={setDateToPopoverOpen}>
+                    <PopoverTrigger asChild>
+                        <Button
+                            variant="outline"
+                            className="w-36 justify-start text-left font-normal"
+                        >
+                            {dateTo ? format(new Date(dateTo), "yyyy-MM-dd") : "To date"}
+                        </Button>
+                    </PopoverTrigger>
+                    <PopoverContent align="start" className="p-0">
+                        <Calendar
+                            mode="single"
+                            selected={dateTo ? new Date(dateTo) : undefined}
+                            onSelect={(d) => {
+                                setDateToPopoverOpen(false);
+                                setPage(1);
+                                setDateTo(d ? format(d, "yyyy-MM-dd") : "");
+                            }}
+                            initialFocus
+                        />
+                    </PopoverContent>
+                </Popover>
             </div>
             <Card>
                 <CardContent className="p-0">

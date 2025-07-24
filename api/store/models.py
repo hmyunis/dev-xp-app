@@ -40,7 +40,7 @@ class Transaction(models.Model):
     """
     student = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        on_delete=models.PROTECT, # Prevent deleting a student if they have transactions
+        on_delete=models.CASCADE,
         related_name='transactions'
     )
     item = models.ForeignKey(

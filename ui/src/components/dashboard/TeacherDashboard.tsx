@@ -18,6 +18,8 @@ export const TeacherDashboard = () => {
     });
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
+    const [recentTransactions, setRecentTransactions] = useState<any[]>([]);
+    const [loadingTx, setLoadingTx] = useState(true);
 
     useEffect(() => {
         const fetchDashboardData = async () => {
@@ -49,6 +51,15 @@ export const TeacherDashboard = () => {
         };
 
         fetchDashboardData();
+    }, []);
+
+    useEffect(() => {
+        setLoadingTx(true);
+        storeApi
+            .getTransactions({ pageSize: 5 })
+            .then((res) => setRecentTransactions(res.data.data?.items || []))
+            .catch(() => setRecentTransactions([]))
+            .finally(() => setLoadingTx(false));
     }, []);
 
     if (loading) {
@@ -197,27 +208,50 @@ export const TeacherDashboard = () => {
                 </Card>
             </motion.div>
 
-            {/* Recent Activity */}
+            {/* Replace Recent Activity section with Recent Store Transactions */}
             <motion.div variants={itemVariants}>
                 <Card className="bg-gradient-to-r from-yellow-100 to-orange-100 border-2 border-yellow-200">
                     <CardHeader>
                         <CardTitle className="text-2xl font-bold text-orange-800 flex items-center gap-2">
                             <TrendingUp className="h-6 w-6" />
-                            Recent Activity
+                            Recent Store Transactions
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="space-y-4">
-                            <div className="flex items-center gap-4 p-4 bg-white rounded-lg shadow-sm">
-                                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                                <div>
-                                    <p className="font-medium text-gray-800">System initialized</p>
-                                    <p className="text-sm text-gray-600">
-                                        Ready to track student progress
-                                    </p>
-                                </div>
+                        {loadingTx ? (
+                            <div className="p-4">Loading...</div>
+                        ) : recentTransactions.length === 0 ? (
+                            <div className="p-4 text-gray-500">No recent transactions.</div>
+                        ) : (
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-sm">
+                                    <thead>
+                                        <tr>
+                                            <th className="text-left p-2">Student</th>
+                                            <th className="text-left p-2">Item</th>
+                                            <th className="text-left p-2">XP Cost</th>
+                                            <th className="text-left p-2">Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {recentTransactions.map((tx, i) => (
+                                            <tr key={tx.id}>
+                                                <td className="p-2">
+                                                    {tx.student?.username ||
+                                                        tx.student?.fullName ||
+                                                        "-"}
+                                                </td>
+                                                <td className="p-2">{tx.item?.name || "-"}</td>
+                                                <td className="p-2">{tx.xpCostAtPurchase}</td>
+                                                <td className="p-2">
+                                                    {new Date(tx.timestamp).toLocaleString()}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
                             </div>
-                        </div>
+                        )}
                     </CardContent>
                 </Card>
             </motion.div>

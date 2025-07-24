@@ -8,8 +8,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
-from .models import StudentProfile
-from .serializers import StudentProfileSerializer, AddXPSerializer
+from .models import StudentProfile, XpGrantLog
+from .serializers import StudentProfileSerializer, AddXPSerializer, XpGrantLogSerializer
 from core.permissions import IsTeacher
 
 class StudentViewSet(viewsets.ModelViewSet):
@@ -43,7 +43,13 @@ class StudentViewSet(viewsets.ModelViewSet):
             profile.total_xp += xp_to_add
             profile.available_xp += xp_to_add
             profile.save()
-        
+            # Log the XP grant
+            XpGrantLog.objects.create(
+                student=profile.user,
+                teacher=request.user,
+                amount=xp_to_add,
+                reason=serializer.validated_data.get('reason', '')
+            )
         response_serializer = StudentProfileSerializer(profile, context={'request': request})
         return Response(response_serializer.data, status=status.HTTP_200_OK)
 
@@ -57,3 +63,12 @@ class LeaderboardView(generics.ListAPIView):
     queryset = StudentProfile.objects.select_related('user').order_by('-total_xp', 'user__full_name')
     serializer_class = StudentProfileSerializer
     permission_classes = [IsAuthenticated]
+
+
+class XpGrantLogListView(generics.ListAPIView):
+    queryset = XpGrantLog.objects.select_related('student', 'teacher').order_by('-date')
+    serializer_class = XpGrantLogSerializer
+    permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    search_fields = ['student__username', 'teacher__username', 'reason']
+    ordering_fields = ['date', 'amount', 'student__username', 'teacher__username']

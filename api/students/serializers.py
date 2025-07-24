@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import StudentProfile
+from .models import XpGrantLog
 from users.serializers import UserSerializer
 
 class StudentProfileSerializer(serializers.ModelSerializer):
@@ -26,3 +27,12 @@ class AddXPSerializer(serializers.Serializer):
         allow_blank=True,
         help_text="An optional reason for awarding the XP (e.g., 'Project Completion')."
     )
+
+
+class XpGrantLogSerializer(serializers.ModelSerializer):
+    student = UserSerializer(read_only=True)
+    teacher = UserSerializer(read_only=True)
+
+    class Meta:
+        model = XpGrantLog
+        fields = ['id', 'student', 'teacher', 'amount', 'reason', 'date']

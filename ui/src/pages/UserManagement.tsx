@@ -23,14 +23,22 @@ import {
     DialogTitle,
     DialogFooter,
 } from "@/components/ui/dialog";
+import { BulkCreateUsersDialog } from "./BulkCreateUsersDialog";
+import {
+    Select,
+    SelectTrigger,
+    SelectContent,
+    SelectItem,
+    SelectValue,
+} from "@/components/ui/select";
 
 function useDebounce<T>(value: T, delay: number) {
-  const [debounced, setDebounced] = React.useState(value);
-  React.useEffect(() => {
-    const handler = setTimeout(() => setDebounced(value), delay);
-    return () => clearTimeout(handler);
-  }, [value, delay]);
-  return debounced;
+    const [debounced, setDebounced] = React.useState(value);
+    React.useEffect(() => {
+        const handler = setTimeout(() => setDebounced(value), delay);
+        return () => clearTimeout(handler);
+    }, [value, delay]);
+    return debounced;
 }
 
 const PAGE_SIZE = 20;
@@ -46,14 +54,21 @@ const UserManagement = () => {
     const [showCreate, setShowCreate] = useState(false);
     const [form, setForm] = useState<any>({});
     const [submitting, setSubmitting] = useState(false);
+    const [bulkDialogOpen, setBulkDialogOpen] = useState(false);
 
-    const { data, isLoading, isError, refetch } = useQuery({
+    const { data, isLoading, isError, refetch } = useQuery<{
+        items: User[];
+        pagination: { currentPage: number; totalPages: number };
+    }>({
         queryKey: ["users", page, debouncedSearch],
         queryFn: async () => {
-            const response = await userApi.getAllUsers({ page, pageSize: PAGE_SIZE, search: debouncedSearch });
+            const response = await userApi.getAllUsers({
+                page,
+                pageSize: PAGE_SIZE,
+                search: debouncedSearch,
+            });
             return response.data.data;
         },
-        keepPreviousData: true,
     });
 
     const handleEdit = (user: User) => {
@@ -140,7 +155,7 @@ const UserManagement = () => {
                 <Input
                     placeholder="Search by username, name, or email"
                     value={search}
-                    onChange={e => {
+                    onChange={(e) => {
                         setPage(1);
                         setSearch(e.target.value);
                     }}
@@ -152,6 +167,17 @@ const UserManagement = () => {
                 >
                     + Create User
                 </Button>
+                <Button
+                    onClick={() => setBulkDialogOpen(true)}
+                    className="bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold shadow-lg hover:shadow-xl"
+                >
+                    ✨ Bulk Create
+                </Button>
+                <BulkCreateUsersDialog
+                    open={bulkDialogOpen}
+                    onOpenChange={setBulkDialogOpen}
+                    onComplete={refetch}
+                />
             </div>
             <Card>
                 <CardContent className="p-0">
@@ -165,32 +191,45 @@ const UserManagement = () => {
                         <Table>
                             <TableHeader>
                                 <TableRow>
+                                    <TableHead>#</TableHead>
                                     <TableHead>Username</TableHead>
                                     <TableHead>Full Name</TableHead>
-                                    <TableHead>Email</TableHead>
                                     <TableHead>Phone</TableHead>
+                                    <TableHead>Email</TableHead>
                                     <TableHead>Role</TableHead>
                                     <TableHead>Date Joined</TableHead>
+                                    <TableHead>Last Login</TableHead>
                                     <TableHead>Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {data?.items?.length === 0 ? (
                                     <TableRow>
-                                        <TableCell colSpan={7} className="text-center">
+                                        <TableCell colSpan={9} className="text-center">
                                             No users found.
                                         </TableCell>
                                     </TableRow>
                                 ) : (
-                                    data?.items?.map((u: User) => (
-                                        <TableRow key={u.id}>
+                                    data?.items?.map((u: User, idx: number) => (
+                                        <TableRow
+                                            key={u.id}
+                                            className={u.role === "TEACHER" ? "bg-emerald-50" : ""}
+                                        >
+                                            <TableCell>
+                                                {(page - 1) * PAGE_SIZE + idx + 1}
+                                            </TableCell>
                                             <TableCell>{u.username}</TableCell>
                                             <TableCell>{u.fullName}</TableCell>
-                                            <TableCell>{u.email}</TableCell>
                                             <TableCell>{u.phoneNumber}</TableCell>
+                                            <TableCell>{u.email}</TableCell>
                                             <TableCell>{u.role}</TableCell>
                                             <TableCell>
                                                 {new Date(u.dateJoined).toLocaleDateString()}
+                                            </TableCell>
+                                            <TableCell>
+                                                {u.lastLogin
+                                                    ? new Date(u.lastLogin).toLocaleString()
+                                                    : "-"}
                                             </TableCell>
                                             <TableCell>
                                                 <Button
@@ -332,15 +371,18 @@ const UserManagement = () => {
                             onChange={handleFormChange}
                             placeholder="Phone Number"
                         />
-                        <select
-                            name="role"
+                        <Select
                             value={form.role || "STUDENT"}
-                            onChange={handleFormChange}
-                            className="w-full border rounded p-2"
+                            onValueChange={(val) => setForm((f) => ({ ...f, role: val }))}
                         >
-                            <option value="STUDENT">Student</option>
-                            <option value="TEACHER">Teacher</option>
-                        </select>
+                            <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Role" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="STUDENT">Student</SelectItem>
+                                <SelectItem value="TEACHER">Teacher</SelectItem>
+                            </SelectContent>
+                        </Select>
                         <Input
                             name="password"
                             value={form.password || ""}

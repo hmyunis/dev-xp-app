@@ -13,7 +13,7 @@ export default defineConfig(({ mode }) => ({
   ].filter(Boolean),
   build: {
     // This is the output directory, relative to the project root (the `frontend` folder)
-    outDir: '../backend/core/static', 
+    outDir: '../api/core/static', 
     
     // Set to false to prevent Vite from clearing the directory on rebuild.
     // This is useful if you have other static files in the same directory.

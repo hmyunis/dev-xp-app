@@ -129,7 +129,10 @@ ROOT_URLCONF = 'dev_xp_camp.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [
+            # This is where we will serve our React app's index.html
+            BASE_DIR / 'core/static',
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

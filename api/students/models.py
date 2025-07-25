@@ -23,6 +23,11 @@ class StudentProfile(models.Model):
         default=0,
         help_text=_("XP currently available for spending in the Dev Store.")
     )
+    school = models.ForeignKey(
+        'users.School',
+        on_delete=models.PROTECT,
+        related_name='student_profiles',
+    )
 
     def __str__(self):
         return f"{self.user.username}'s Profile"
@@ -39,7 +44,7 @@ def create_student_profile(sender, instance, created, **kwargs):
     with the 'STUDENT' role is created.
     """
     if created and instance.role == 'STUDENT':
-        StudentProfile.objects.create(user=instance)
+        StudentProfile.objects.create(user=instance, school=instance.school)
 
 
 class XpGrantLog(models.Model):
@@ -58,6 +63,11 @@ class XpGrantLog(models.Model):
     amount = models.PositiveIntegerField()
     reason = models.CharField(max_length=255, blank=True)
     date = models.DateTimeField(auto_now_add=True)
+    school = models.ForeignKey(
+        'users.School',
+        on_delete=models.CASCADE,
+        related_name='xp_grant_logs',
+    )
 
     def __str__(self):
         return f"{self.teacher} → {self.student}: {self.amount} XP ({self.reason})"

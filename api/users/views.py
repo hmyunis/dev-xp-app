@@ -17,7 +17,12 @@ class UserViewSet(viewsets.ModelViewSet):
     - Full CRUD is restricted to Admin users.
     - Includes a /me/ endpoint for authenticated users to manage their own profile.
     """
-    queryset = User.objects.all().order_by('-date_joined')
+    def get_queryset(self):
+        user = self.request.user
+        qs = User.objects.all().order_by('-date_joined')
+        if user.is_authenticated and user.school_id:
+            qs = qs.filter(school_id=user.school_id)
+        return qs
     permission_classes = [IsAdminUser] # Default permission for the ViewSet
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
 
@@ -31,6 +36,14 @@ class UserViewSet(viewsets.ModelViewSet):
             return UserCreateSerializer
         return UserSerializer
 
+    def perform_create(self, serializer):
+        user = self.request.user
+        data = serializer.validated_data
+        if data.get('role') == 'STUDENT' and user and user.school_id:
+            serializer.save(school=user.school)
+        else:
+            serializer.save()
+
     @action(detail=False, methods=['get', 'put', 'patch'], permission_classes=[IsAuthenticated])
     def me(self, request):
         """An endpoint for the logged-in user to view and update their own profile."""
@@ -43,6 +56,14 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
+
+    @action(detail=False, methods=['get'], url_path='my-school', permission_classes=[IsAuthenticated])
+    def my_school(self, request):
+        user = request.user
+        school = user.school
+        if not school:
+            return Response({'school': None})
+        return Response({'school': {'id': school.id, 'name': school.name, 'code': school.code}})
 
 
 class MyTokenObtainPairView(TokenObtainPairView):

@@ -28,6 +28,7 @@ ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='127.0.0.1,localhost').split(','
 
 INSTALLED_APPS = [
     'django.contrib.admin',
+    'users',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -43,7 +44,6 @@ INSTALLED_APPS = [
 
     # Custom Apps
     'core',
-    'users',
     'students',
     'store',
 ]

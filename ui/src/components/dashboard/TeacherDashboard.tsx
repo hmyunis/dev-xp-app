@@ -4,10 +4,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Users, Award, ShoppingBag, BookOpen, TrendingUp, Plus } from "lucide-react";
 import { studentApi, storeApi, userApi } from "@/lib/apiClient";
-import { StudentProfile, StoreItem, User } from "@/types";
+import { StudentProfile, StoreItem, User, School } from "@/types";
 import { LoadingSkeleton, CardSkeleton } from "@/components/ui/loading-skeleton";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { Badge } from "@/components/ui/badge";
+import { useQuery } from "@tanstack/react-query";
 
 export const TeacherDashboard = () => {
     const [stats, setStats] = useState({
@@ -20,6 +22,11 @@ export const TeacherDashboard = () => {
     const navigate = useNavigate();
     const [recentTransactions, setRecentTransactions] = useState<any[]>([]);
     const [loadingTx, setLoadingTx] = useState(true);
+    const { data: schoolResp } = useQuery({
+        queryKey: ["mySchool"],
+        queryFn: userApi.getMySchool,
+    });
+    const school = schoolResp?.data?.data?.school || null;
 
     useEffect(() => {
         const fetchDashboardData = async () => {
@@ -99,8 +106,9 @@ export const TeacherDashboard = () => {
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="space-y-8"
+            className="space-y-8 relative"
         >
+            {/* School badge removed, now in header */}
             {/* Stats Overview */}
             <motion.div variants={itemVariants}>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

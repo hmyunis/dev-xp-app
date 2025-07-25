@@ -24,6 +24,11 @@ class StoreItem(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    school = models.ForeignKey(
+        'users.School',
+        on_delete=models.PROTECT,
+        related_name='store_items',
+    )
 
     def __str__(self):
         return f"{self.name} ({self.xp_cost} XP)"
@@ -52,6 +57,11 @@ class Transaction(models.Model):
         help_text=_("The XP cost of the item at the time of the transaction.")
     )
     timestamp = models.DateTimeField(auto_now_add=True)
+    school = models.ForeignKey(
+        'users.School',
+        on_delete=models.CASCADE,
+        related_name='transactions',
+    )
 
     def __str__(self):
         return f"Transaction: {self.student.username} bought {self.item.name} on {self.timestamp.strftime('%Y-%m-%d')}"

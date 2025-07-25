@@ -31,14 +31,18 @@ class UserCreateSerializer(serializers.ModelSerializer):
         fields = ['username', 'password', 'full_name', 'email', 'phone_number', 'role']
 
     def create(self, validated_data):
-        # Use the custom manager's create_user method to ensure password is hashed.
+        request = self.context.get('request')
+        school = None
+        if request and hasattr(request, 'user') and request.user and request.user.school_id:
+            school = request.user.school
         user = User.objects.create_user(
             username=validated_data['username'],
             password=validated_data['password'],
             full_name=validated_data.get('full_name', ''),
             email=validated_data.get('email'),
             phone_number=validated_data.get('phone_number', ''),
-            role=validated_data.get('role', User.Role.STUDENT)
+            role=validated_data.get('role', User.Role.STUDENT),
+            school=school
         )
         return user
 

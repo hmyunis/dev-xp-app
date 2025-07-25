@@ -16,6 +16,9 @@ import {
     DialogFooter,
 } from "@/components/ui/dialog";
 import { authApi } from "@/lib/apiClient";
+import { Badge } from "@/components/ui/badge";
+import { School } from "@/types";
+import { useQuery } from "@tanstack/react-query";
 
 const Profile = () => {
     const { user, refreshUser } = useAuth();
@@ -28,6 +31,11 @@ const Profile = () => {
     const [showChangePw, setShowChangePw] = useState(false);
     const [pwForm, setPwForm] = useState({ oldPassword: "", newPassword: "", confirmPassword: "" });
     const [pwLoading, setPwLoading] = useState(false);
+    const { data: schoolResp } = useQuery({
+        queryKey: ["mySchool"],
+        queryFn: userApi.getMySchool,
+    });
+    const school = schoolResp?.data?.data?.school || null;
 
     useEffect(() => {
         if (user) {
@@ -117,6 +125,7 @@ const Profile = () => {
             animate="visible"
             className="space-y-8 max-w-2xl mx-auto"
         >
+            {/* School badge moved into profile info card */}
             <motion.div variants={itemVariants} className="text-center">
                 <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-4">
                     👤 My Profile
@@ -145,6 +154,14 @@ const Profile = () => {
                         <p className="text-lg text-white/90 mt-2">
                             Role: {user?.role === "STUDENT" ? "🎓 Student" : "👨‍🏫 Teacher"}
                         </p>
+                        {school && (
+                            <div className="flex flex-col md:flex-row items-center justify-center gap-2 mt-4">
+                                <span className="text-sm text-white/80 mb-1">School:</span>
+                                <Badge variant="default" className="text-sm px-4 py-1">
+                                    {school.name}
+                                </Badge>
+                            </div>
+                        )}
                     </CardHeader>
                 </Card>
             </motion.div>

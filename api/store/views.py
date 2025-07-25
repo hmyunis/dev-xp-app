@@ -38,11 +38,16 @@ class StoreItemViewSet(viewsets.ModelViewSet):
         Dynamically filter the queryset based on the user's role.
         """
         user = self.request.user
+        qs = StoreItem.objects.all().order_by('xp_cost')
+        if user.is_authenticated and user.school_id:
+            qs = qs.filter(school_id=user.school_id)
         if user.is_authenticated and user.role == 'STUDENT':
-            # Students only see active items that are in stock
-            return super().get_queryset().filter(is_active=True, stock_quantity__gt=0)
-        # Teachers see all items
-        return super().get_queryset()
+            qs = qs.filter(is_active=True, stock_quantity__gt=0)
+        return qs
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        serializer.save(school=user.school)
 
 
 class TransactionViewSet(mixins.CreateModelMixin,
@@ -67,6 +72,13 @@ class TransactionViewSet(mixins.CreateModelMixin,
         if self.action == 'create':
             return CreateTransactionSerializer
         return TransactionSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        qs = Transaction.objects.select_related('student', 'item').all()
+        if user.is_authenticated and user.school_id:
+            qs = qs.filter(school_id=user.school_id)
+        return qs
 
     def create(self, request, *args, **kwargs):
         """Handles the logic for a student purchasing an item."""
@@ -100,7 +112,8 @@ class TransactionViewSet(mixins.CreateModelMixin,
             transaction_record = Transaction.objects.create(
                 student=student_profile.user,
                 item=item,
-                xp_cost_at_purchase=item.xp_cost
+                xp_cost_at_purchase=item.xp_cost,
+                school=request.user.school
             )
         
         # Return the created transaction record using the detailed serializer

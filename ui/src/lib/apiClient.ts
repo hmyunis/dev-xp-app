@@ -7,6 +7,8 @@ import {
     StudentProfile,
     StoreItem,
     Transaction,
+    School,
+    MySchoolResponse,
 } from "@/types";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -93,6 +95,8 @@ export const userApi = {
         apiClient.patch<ApiResponse<User>>(`/users/${id}/`, data),
 
     deleteUser: (id: number) => apiClient.delete(`/users/${id}/`),
+
+    getMySchool: () => apiClient.get<ApiResponse<MySchoolResponse>>("/users/my-school/"),
 };
 
 export const studentApi = {

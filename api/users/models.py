@@ -14,7 +14,10 @@ class CustomUserManager(BaseUserManager):
         """
         if not username:
             raise ValueError(_('The Username must be set'))
+        school = extra_fields.pop('school', None)
         user = self.model(username=username, **extra_fields)
+        if school is not None:
+            user.school = school
         user.set_password(password)
         user.save(using=self._db)
         return user
@@ -36,6 +39,13 @@ class CustomUserManager(BaseUserManager):
             
         return self.create_user(username, password, **extra_fields)
 
+class School(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+    code = models.CharField(max_length=50, unique=True)
+
+    def __str__(self):
+        return self.name
+
 class User(AbstractUser):
     """
     Custom User model for the camp.
@@ -50,6 +60,11 @@ class User(AbstractUser):
     email = models.EmailField(_("email address"), unique=True, null=True, blank=True)
     role = models.CharField(max_length=50, choices=Role.choices, default=Role.STUDENT)
     phone_number = models.CharField(_("phone number"), max_length=20, blank=True)
+    school = models.ForeignKey(
+        School,
+        on_delete=models.PROTECT,
+        related_name='users'
+    )
 
     objects = CustomUserManager()
 

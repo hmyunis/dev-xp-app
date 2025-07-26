@@ -1,6 +1,13 @@
+import os
+from django.core.files.storage import default_storage
 from django.db import models
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
+from dev_xp_camp.utils import get_upload_path
+from io import BytesIO
+from django.core.files.base import ContentFile
+from PIL import Image as PilImage
+import uuid
 
 def store_image_upload_path(instance, filename):
     """Generates a unique path for uploaded store item images."""
@@ -15,7 +22,7 @@ class StoreItem(models.Model):
     xp_cost = models.PositiveIntegerField(help_text=_("The price of the item in XP."))
     
     # Using FileField as requested, to handle blobs or any file type from the frontend.
-    image = models.FileField(upload_to=store_image_upload_path, null=True, blank=True)
+    image = models.FileField(upload_to=get_upload_path, null=True, blank=True)
     
     stock_quantity = models.PositiveIntegerField(default=1)
     is_active = models.BooleanField(
@@ -37,6 +44,35 @@ class StoreItem(models.Model):
         ordering = ['xp_cost', 'name']
         verbose_name = _("Store Item")
         verbose_name_plural = _("Store Items")
+
+    def save(self, *args, **kwargs):
+        # Delete old file if updating the image
+        if self.pk:
+            old = StoreItem.objects.filter(pk=self.pk).first()
+            if old and old.image and self.image != old.image:
+                if default_storage.exists(old.image.name):
+                    default_storage.delete(old.image.name)
+        # Image compression logic
+        if self.image and hasattr(self.image.file, 'content_type'):
+            try:
+                img = PilImage.open(self.image)
+                if img.mode != 'RGB':
+                    img = img.convert('RGB')
+                buffer = BytesIO()
+                img.save(buffer, format='JPEG', quality=85, optimize=True)
+                model_name = self.__class__.__name__.lower()
+                new_filename = f'{uuid.uuid4()}.jpg'
+                path = os.path.join('uploads', model_name, new_filename)
+                self.image.save(path, ContentFile(buffer.getvalue()), save=False)
+            except Exception:
+                pass
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        # Delete the file from storage when the object is deleted
+        if self.image and default_storage.exists(self.image.name):
+            default_storage.delete(self.image.name)
+        super().delete(*args, **kwargs)
 
 
 class Transaction(models.Model):

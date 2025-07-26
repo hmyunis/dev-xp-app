@@ -24,6 +24,7 @@ import {
     DialogFooter,
 } from "@/components/ui/dialog";
 import { Gift } from "lucide-react";
+import { RotateCw, RotateCcw } from "lucide-react";
 
 function useDebounce<T>(value: T, delay: number) {
     const [debounced, setDebounced] = React.useState(value);
@@ -47,6 +48,8 @@ const StoreManagement = () => {
     const [showCreate, setShowCreate] = useState(false);
     const [form, setForm] = useState<any>({});
     const [submitting, setSubmitting] = useState(false);
+    const [previewImage, setPreviewImage] = useState<string | null>(null);
+    const [previewRotation, setPreviewRotation] = useState<number>(0);
 
     const { data, isLoading, isError, refetch } = useQuery({
         queryKey: ["storeItems", page, debouncedSearch],
@@ -58,7 +61,7 @@ const StoreManagement = () => {
             });
             return response.data.data;
         },
-        keepPreviousData: true,
+        placeholderData: (prev) => prev,
     });
 
     const handleEdit = (item: StoreItem) => {
@@ -217,7 +220,11 @@ const StoreManagement = () => {
                                                         <img
                                                             src={item.imageUrl}
                                                             alt={item.name}
-                                                            className="h-16 object-contain rounded"
+                                                            className="h-16 object-contain rounded cursor-pointer"
+                                                            onClick={() => {
+                                                                setPreviewImage(item.imageUrl);
+                                                                setPreviewRotation(0);
+                                                            }}
                                                         />
                                                     ) : (
                                                         <Gift className="h-8 w-8 text-purple-600" />
@@ -433,6 +440,54 @@ const StoreManagement = () => {
                             Delete
                         </Button>
                     </DialogFooter>
+                </DialogContent>
+            </Dialog>
+            {/* Image Preview Dialog */}
+            <Dialog
+                open={!!previewImage}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setPreviewImage(null);
+                        setPreviewRotation(0);
+                    }
+                }}
+            >
+                <DialogContent className="max-w-xl">
+                    <DialogHeader>
+                        <DialogTitle>Image Preview</DialogTitle>
+                    </DialogHeader>
+                    {previewImage && (
+                        <div className="flex flex-col items-center gap-4">
+                            <div className="relative w-full flex justify-center">
+                                <img
+                                    src={previewImage}
+                                    alt="Preview"
+                                    style={{
+                                        transform: `rotate(${previewRotation}deg)`,
+                                        maxHeight: 350,
+                                        maxWidth: "100%",
+                                    }}
+                                    className="rounded shadow-lg border"
+                                />
+                            </div>
+                            <div className="flex gap-4">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => setPreviewRotation((r) => r - 90)}
+                                >
+                                    <RotateCcw className="w-5 h-5" />
+                                </Button>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => setPreviewRotation((r) => r + 90)}
+                                >
+                                    <RotateCw className="w-5 h-5" />
+                                </Button>
+                            </div>
+                        </div>
+                    )}
                 </DialogContent>
             </Dialog>
         </div>

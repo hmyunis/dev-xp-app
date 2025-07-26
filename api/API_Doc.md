@@ -285,10 +285,10 @@ For endpoints that return a list of items, the response will be paginated.
       "items": [
         {
           "id": 1,
-          "name": "Sticker Pack",
-          "description": "A pack of cool dev stickers for your laptop.",
+          "name": "Bubblegum Pack",
+          "description": "A pack of sweet bubblegum sticks.",
           "xpCost": 100,
-          "imageUrl": "http://<your-domain>/media/store_items/1/stickers.png",
+          "imageUrl": "http://<your-domain>/media/store_items/1/bubblegum.png",
           "stockQuantity": 25,
           "isActive": true,
           "createdAt": "2024-08-10T12:00:00Z"

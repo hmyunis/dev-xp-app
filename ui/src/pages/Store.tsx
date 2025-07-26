@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Gift, ShoppingCart, Star, Sparkles } from "lucide-react";
+import { Gift, ShoppingCart, Star, Sparkles, RotateCw, RotateCcw } from "lucide-react";
 import { storeApi } from "@/lib/apiClient";
 import { StoreItem } from "@/types";
 import { CardSkeleton } from "@/components/ui/loading-skeleton";
@@ -57,6 +57,8 @@ const Store = () => {
     const [showCreate, setShowCreate] = useState(false);
     const [showEdit, setShowEdit] = useState<StoreItem | null>(null);
     const [showDelete, setShowDelete] = useState<StoreItem | null>(null);
+    const [previewImage, setPreviewImage] = useState<string | null>(null);
+    const [previewRotation, setPreviewRotation] = useState<number>(0);
 
     // Mutations
     const createMutation = useMutation({
@@ -192,7 +194,7 @@ const Store = () => {
                             Exclusive Dev Rewards Await! 🌟
                         </CardTitle>
                         <p className="text-lg text-white/90 mt-2">
-                            From stickers to gadgets, turn your XP into awesome prizes!
+                            From snacks to gadgets, turn your XP into awesome prizes!
                         </p>
                     </CardHeader>
                 </Card>
@@ -214,7 +216,11 @@ const Store = () => {
                                             <img
                                                 src={item.imageUrl}
                                                 alt={item.name}
-                                                className="h-32 object-contain rounded"
+                                                className="h-32 object-contain rounded cursor-pointer"
+                                                onClick={() => {
+                                                    setPreviewImage(item.imageUrl);
+                                                    setPreviewRotation(0);
+                                                }}
                                             />
                                         ) : (
                                             <Gift className="h-16 w-16 text-purple-600" />
@@ -391,6 +397,54 @@ const Store = () => {
                             Delete
                         </Button>
                     </DialogFooter>
+                </DialogContent>
+            </Dialog>
+            {/* Image Preview Dialog */}
+            <Dialog
+                open={!!previewImage}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setPreviewImage(null);
+                        setPreviewRotation(0);
+                    }
+                }}
+            >
+                <DialogContent className="max-w-xl">
+                    <DialogHeader>
+                        <DialogTitle>Image Preview</DialogTitle>
+                    </DialogHeader>
+                    {previewImage && (
+                        <div className="flex flex-col items-center gap-4">
+                            <div className="relative w-full flex justify-center">
+                                <img
+                                    src={previewImage}
+                                    alt="Preview"
+                                    style={{
+                                        transform: `rotate(${previewRotation}deg)`,
+                                        maxHeight: 350,
+                                        maxWidth: "100%",
+                                    }}
+                                    className="rounded shadow-lg border"
+                                />
+                            </div>
+                            <div className="flex gap-4">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => setPreviewRotation((r) => r - 90)}
+                                >
+                                    <RotateCcw className="w-5 h-5" />
+                                </Button>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={() => setPreviewRotation((r) => r + 90)}
+                                >
+                                    <RotateCw className="w-5 h-5" />
+                                </Button>
+                            </div>
+                        </div>
+                    )}
                 </DialogContent>
             </Dialog>
         </motion.div>

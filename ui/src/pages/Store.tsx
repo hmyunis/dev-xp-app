@@ -32,7 +32,7 @@ const Store = () => {
             return storeApi.createTransaction(user.id, item.id);
         },
         onSuccess: () => {
-            toast.success("🎉 Item purchased and added to your inventory!");
+            toast.success("🎉 Item purchased and added to your history!");
             queryClient.invalidateQueries({ queryKey: ["storeItems"] });
         },
         onError: (error: any) => {
@@ -57,6 +57,7 @@ const Store = () => {
     const [showCreate, setShowCreate] = useState(false);
     const [showEdit, setShowEdit] = useState<StoreItem | null>(null);
     const [showDelete, setShowDelete] = useState<StoreItem | null>(null);
+    const [showPurchaseConfirm, setShowPurchaseConfirm] = useState<StoreItem | null>(null);
     const [previewImage, setPreviewImage] = useState<string | null>(null);
     const [previewRotation, setPreviewRotation] = useState<number>(0);
 
@@ -121,7 +122,14 @@ const Store = () => {
 
     // Move handlePurchase above the return statement
     const handlePurchase = (item: StoreItem) => {
-        purchaseMutation.mutate(item);
+        setShowPurchaseConfirm(item);
+    };
+
+    const confirmPurchase = () => {
+        if (showPurchaseConfirm) {
+            purchaseMutation.mutate(showPurchaseConfirm);
+            setShowPurchaseConfirm(null);
+        }
     };
 
     if (isLoading) {
@@ -395,6 +403,82 @@ const Store = () => {
                             disabled={deleteMutation.isPending}
                         >
                             Delete
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Purchase Confirmation Dialog */}
+            <Dialog open={!!showPurchaseConfirm} onOpenChange={() => setShowPurchaseConfirm(null)}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Confirm Purchase</DialogTitle>
+                    </DialogHeader>
+                    {showPurchaseConfirm && (
+                        <div className="space-y-4">
+                            <div className="flex items-center gap-4">
+                                <div className="w-16 h-16 bg-gradient-to-br from-blue-200 via-purple-200 to-pink-200 rounded-lg flex items-center justify-center">
+                                    {showPurchaseConfirm.imageUrl ? (
+                                        <img
+                                            src={showPurchaseConfirm.imageUrl}
+                                            alt={showPurchaseConfirm.name}
+                                            className="h-12 object-contain rounded"
+                                        />
+                                    ) : (
+                                        <Gift className="h-8 w-8 text-purple-600" />
+                                    )}
+                                </div>
+                                <div>
+                                    <h3 className="font-semibold text-lg">
+                                        {showPurchaseConfirm.name}
+                                    </h3>
+                                    <p className="text-gray-600">
+                                        {showPurchaseConfirm.description}
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                                <div className="flex items-center justify-between">
+                                    <span className="font-medium text-yellow-800">Cost:</span>
+                                    <Badge className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white">
+                                        {showPurchaseConfirm.xpCost} XP
+                                    </Badge>
+                                </div>
+                                <div className="flex items-center justify-between mt-2">
+                                    <span className="font-medium text-yellow-800">
+                                        Stock Available:
+                                    </span>
+                                    <span className="text-yellow-700">
+                                        {showPurchaseConfirm.stockQuantity} left
+                                    </span>
+                                </div>
+                            </div>
+                            <p className="text-sm text-gray-600">
+                                Are you sure you want to purchase this item? This action cannot be
+                                undone.
+                            </p>
+                        </div>
+                    )}
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setShowPurchaseConfirm(null)}>
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={confirmPurchase}
+                            disabled={purchaseMutation.isPending}
+                            className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
+                        >
+                            {purchaseMutation.isPending ? (
+                                <>
+                                    <RotateCw className="mr-2 h-4 w-4 animate-spin" />
+                                    Purchasing...
+                                </>
+                            ) : (
+                                <>
+                                    <ShoppingCart className="mr-2 h-4 w-4" />
+                                    Confirm Purchase
+                                </>
+                            )}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

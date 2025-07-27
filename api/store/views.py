@@ -36,18 +36,17 @@ class StoreItemViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """
         Dynamically filter the queryset based on the user's role.
+        Store items are shared across all schools.
         """
         user = self.request.user
         qs = StoreItem.objects.all().order_by('xp_cost')
-        if user.is_authenticated and user.school_id:
-            qs = qs.filter(school_id=user.school_id)
         if user.is_authenticated and user.role == 'STUDENT':
             qs = qs.filter(is_active=True, stock_quantity__gt=0)
         return qs
 
     def perform_create(self, serializer):
-        user = self.request.user
-        serializer.save(school=user.school)
+        # Store items are shared across all schools, no school assignment needed
+        serializer.save()
 
 
 class TransactionViewSet(mixins.CreateModelMixin,

@@ -16,6 +16,7 @@ def store_image_upload_path(instance, filename):
 class StoreItem(models.Model):
     """
     Represents an item available for purchase in the Dev Store.
+    Shared across all schools.
     """
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
@@ -31,11 +32,6 @@ class StoreItem(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    school = models.ForeignKey(
-        'users.School',
-        on_delete=models.PROTECT,
-        related_name='store_items',
-    )
 
     def __str__(self):
         return f"{self.name} ({self.xp_cost} XP)"

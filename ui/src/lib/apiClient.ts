@@ -35,6 +35,11 @@ apiClient.interceptors.response.use(
     async (error) => {
         const originalRequest = error.config;
 
+        // For login failures, don't try to refresh token - just let the error pass through
+        if (error.response?.data?.error?.code === "authentication_failed") {
+            return Promise.reject(error);
+        }
+
         if (error.response?.status === 401 && !originalRequest._retry) {
             originalRequest._retry = true;
 

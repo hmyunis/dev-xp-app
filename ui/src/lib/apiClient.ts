@@ -75,7 +75,7 @@ export const authApi = {
         apiClient.post<ApiResponse<{ access: string }>>("/auth/token/refresh/", { refresh }),
 
     changePassword: (oldPassword: string, newPassword: string, confirmPassword: string) =>
-        apiClient.post<ApiResponse<{ message: string }>>("/auth/change-password/", {
+        apiClient.post<ApiResponse<{ message: string }>>("/users/auth/change-password/", {
             oldPassword,
             newPassword,
             confirmPassword,

@@ -127,6 +127,23 @@ export const studentApi = {
         }),
     getXpHistory: (params?: { page?: number; pageSize?: number; search?: string }) =>
         apiClient.get<ApiResponse<PaginatedResponse<any>>>("/students/xp-history/", { params }),
+
+    uploadReportCard: (userId: number, file: File) => {
+        const formData = new FormData();
+        formData.append("report_card", file);
+        return apiClient.post<ApiResponse<StudentProfile>>(
+            `/students/profiles/${userId}/upload-report-card/`,
+            formData,
+            {
+                headers: { "Content-Type": "multipart/form-data" },
+            }
+        );
+    },
+
+    deleteReportCard: (userId: number) =>
+        apiClient.delete<ApiResponse<StudentProfile>>(
+            `/students/profiles/${userId}/delete-report-card/`
+        ),
 };
 
 export const storeApi = {

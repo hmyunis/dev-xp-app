@@ -63,6 +63,51 @@ class StudentViewSet(viewsets.ModelViewSet):
         response_serializer = StudentProfileSerializer(profile, context={'request': request})
         return Response(response_serializer.data, status=status.HTTP_200_OK)
 
+    @action(detail=True, methods=['post'], url_path='upload-report-card')
+    def upload_report_card(self, request, user_id=None):
+        """
+        Custom action for a teacher to upload a report card for a specific student.
+        """
+        profile = self.get_object()
+        
+        if 'report_card' not in request.FILES:
+            return Response(
+                {'error': 'No report card file provided'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Delete old report card if exists
+        if profile.report_card:
+            profile.report_card.delete(save=False)
+        
+        # Save new report card
+        profile.report_card = request.FILES['report_card']
+        profile.save()
+        
+        response_serializer = StudentProfileSerializer(profile, context={'request': request})
+        return Response(response_serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['delete'], url_path='delete-report-card')
+    def delete_report_card(self, request, user_id=None):
+        """
+        Custom action for a teacher to delete a report card for a specific student.
+        """
+        profile = self.get_object()
+        
+        if not profile.report_card:
+            return Response(
+                {'error': 'No report card to delete'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Delete the file
+        profile.report_card.delete(save=False)
+        profile.report_card = None
+        profile.save()
+        
+        response_serializer = StudentProfileSerializer(profile, context={'request': request})
+        return Response(response_serializer.data, status=status.HTTP_200_OK)
+
 
 class LeaderboardView(generics.ListAPIView):
     """

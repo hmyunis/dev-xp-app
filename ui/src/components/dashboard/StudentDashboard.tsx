@@ -10,6 +10,8 @@ import { LoadingSkeleton, CardSkeleton } from "@/components/ui/loading-skeleton"
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
+import { FloatingActionButton } from "@/components/ui/floating-action-button";
+import { ReportCardModal } from "@/components/ui/report-card-modal";
 
 export const StudentDashboard = () => {
     const { user } = useAuth();
@@ -19,6 +21,7 @@ export const StudentDashboard = () => {
     const navigate = useNavigate();
     const [transactions, setTransactions] = useState<any[]>([]);
     const [loadingTx, setLoadingTx] = useState(true);
+    const [showReportCardModal, setShowReportCardModal] = useState(false);
     const { data: schoolResp } = useQuery({
         queryKey: ["mySchool"],
         queryFn: userApi.getMySchool,
@@ -260,6 +263,22 @@ export const StudentDashboard = () => {
                     </CardContent>
                 </Card>
             </motion.div>
+
+            {/* Floating Action Button for Report Card */}
+            <FloatingActionButton
+                onClick={() => setShowReportCardModal(true)}
+                isVisible={!!profile?.reportCard}
+            />
+
+            {/* Report Card Modal */}
+            {profile?.reportCard && (
+                <ReportCardModal
+                    isOpen={showReportCardModal}
+                    onClose={() => setShowReportCardModal(false)}
+                    reportCardUrl={profile.reportCard}
+                    studentName={user?.fullName || "Student"}
+                />
+            )}
         </motion.div>
     );
 };

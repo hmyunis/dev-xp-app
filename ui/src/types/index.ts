@@ -13,6 +13,7 @@ export interface StudentProfile {
     user: User;
     totalXp: number;
     availableXp: number;
+    reportCard?: string;
 }
 
 export interface StoreItem {

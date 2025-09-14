@@ -13,7 +13,7 @@ class StudentProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = StudentProfile
-        fields = ['user', 'total_xp', 'available_xp']
+        fields = ['user', 'total_xp', 'available_xp', 'report_card']
 
 
 class AddXPSerializer(serializers.Serializer):

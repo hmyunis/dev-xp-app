@@ -3,6 +3,7 @@ from django.conf import settings
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils.translation import gettext_lazy as _
+from dev_xp_camp.utils import get_upload_path
 
 class StudentProfile(models.Model):
     """
@@ -27,6 +28,12 @@ class StudentProfile(models.Model):
         'users.School',
         on_delete=models.PROTECT,
         related_name='student_profiles',
+    )
+    report_card = models.FileField(
+        upload_to=get_upload_path,
+        null=True,
+        blank=True,
+        help_text=_("Student's report card image file")
     )
 
     def __str__(self):
